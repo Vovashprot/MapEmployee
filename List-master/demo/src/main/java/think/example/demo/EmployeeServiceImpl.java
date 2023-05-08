@@ -7,53 +7,49 @@ import org.springframework.stereotype.Service;
 import think.example.demo.Employee;
 import think.example.demo.EmployeeService;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
 
-    int listLimit = 5;
-    private final List<Employee> employeeList;
-
-    public EmployeeServiceImpl() {
-        this.employeeList = new ArrayList<>();
-    }
+    int mapLimit = 200;
+    private final Map<String, Employee> employeeList = new HashMap<>(mapLimit);
 
     @Override
     public Employee add(String firstName, String lastname) {
-        if (employeeList.size()>listLimit){
+        Employee employee = new Employee(firstName,lastname);
+        if (employeeList.size()>mapLimit){
             throw new EmployeeStorageIsFullException();
         }
-        Employee employee = new Employee(firstName, lastname);
-        if (employeeList.contains(employee)){
+        String key = (firstName +"_"+ lastname).toLowerCase();
+        if (employeeList.containsKey(key)){
             throw new EmployeeAlreadyAddedException();
         }
-        employeeList.add(employee);
+        employeeList.put(key,employee);
         return employee;
     }
     @Override
     public Employee remove(String firstName, String lastname) {
-        Employee employee = new Employee(firstName, lastname);
-        if (employeeList.contains(employee)==false){
+        String key = (firstName+"_"+lastname).toLowerCase();
+        Employee employee = employeeList.remove(key);
+        if (employee == null){
             throw new EmployeeNotFoundException();
         }
-        employeeList.remove(employee);
         return employee;
     }
 
     @Override
     public Employee find(String firstName, String lastname) {
-        Employee employee = new Employee(firstName, lastname);
-        if (employeeList.contains(employee)){
-            return employee;
+        String key = (firstName+"_"+lastname).toLowerCase();
+        Employee employee = employeeList.get(key);
+        if (employee == null){
+            throw new EmployeeNotFoundException();
         }
-        throw new EmployeeNotFoundException();
+        return employee;
     }
 
     @Override
     public Collection<Employee> findall() {
-        return Collections.unmodifiableList(employeeList);
+        return employeeList.values();
     }
 }
